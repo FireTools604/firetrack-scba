@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FireTrack — SCBA</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090F;
+  --surface:     #0E1219;
+  --surface2:    #161C28;
+  --surface3:    #1E2638;
+  --red:         #E03131;
+  --red-dim:     rgba(224,49,49,0.12);
+  --text:        #EDF2FF;
+  --text-muted:  #5C6A82;
+  --text-dim:    #8899B4;
+  --border:      #1A2236;
+  --border2:     #243048;
+  --success:     #2F9E44;
+  --success-lt:  #40C057;
+  --success-dim: rgba(47,158,68,0.12);
+  --amber:       #E67700;
+  --amber-dim:   rgba(230,119,0,0.12);
+  --blue:        #1971C2;
+  --blue-dim:    rgba(25,113,194,0.12);
+  --radius:      14px;
+  --radius-sm:   9px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 16px; -webkit-font-smoothing: antialiased; }
+body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+.screen { display: none; flex: 1; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* HEADER */
+.header { display: flex; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--border); background: rgba(14,18,25,0.97); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
+.logo { width: 30px; height: 30px; background: var(--red); border-radius: 7px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; font-size: 15px; }
+.header-title { font-family: 'Bebas Neue', sans-serif; font-size: 19px; letter-spacing: 2px; color: var(--text); flex: 1; line-height: 1; }
+.header-sub { font-size: 9px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; line-height: 1; margin-top: 3px; }
+.icon-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 7px; display: flex; align-items: center; margin-left: 4px; }
+.icon-btn:active { background: var(--surface2); }
+.back-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; margin-right: 4px; border-radius: 7px; display: flex; align-items: center; }
+.back-btn:active { background: var(--surface2); }
+
+/* SESSION BANNER */
+.session-banner { display: flex; align-items: center; justify-content: space-between; padding: 8px 18px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.session-id { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
+.session-dot { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; color: var(--success-lt); }
+.session-dot::before { content: ''; width: 6px; height: 6px; background: var(--success-lt); border-radius: 50%; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* HOME SCREEN */
+.home-hero { padding: 30px 20px 24px; background: linear-gradient(160deg, var(--surface) 0%, var(--bg) 100%); border-bottom: 1px solid var(--border); }
+.app-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--red-dim); border: 1px solid rgba(224,49,49,0.4); color: #FF6B6B; font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 14px; }
+.home-title { font-family: 'Bebas Neue', sans-serif; font-size: 48px; line-height: 0.9; letter-spacing: 3px; color: var(--text); margin-bottom: 10px; }
+.home-title em { color: var(--red); font-style: normal; }
+.home-desc { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+.home-actions { padding: 22px 20px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.action-label { font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
+.btn-primary { width: 100%; background: var(--red); border: none; border-radius: var(--radius); color: white; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; padding: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.15s, transform 0.1s; }
+.btn-primary:active { background: #C92A2A; transform: scale(0.98); }
+.btn-secondary { width: 100%; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; padding: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s; }
+.btn-secondary:active { background: var(--surface2); }
+.active-session-card { background: var(--success-dim); border: 1px solid rgba(64,192,87,0.3); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
+.asc-info { }
+.asc-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--success-lt); margin-bottom: 3px; }
+.asc-id { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim); }
+.asc-count { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.asc-btn { background: rgba(64,192,87,0.15); border: 1px solid rgba(64,192,87,0.4); border-radius: 8px; color: var(--success-lt); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; }
+.asc-btn:active { background: rgba(64,192,87,0.25); }
+
+/* SCAN SCREEN */
+.scan-content { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.ff-select-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.ff-select-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+.form-select { width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 11px 14px; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235C6A82' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; transition: border-color 0.15s; }
+.form-select:focus { border-color: var(--red); }
+.form-select.filled { border-color: rgba(64,192,87,0.4); color: var(--success-lt); }
+
+.status-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
+.status-icon { font-size: 32px; margin-bottom: 8px; }
+.status-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--text); margin-bottom: 3px; }
+.status-sub { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+.prog-bar { display: flex; gap: 5px; }
+.prog-seg { height: 3px; flex: 1; border-radius: 2px; background: var(--border2); transition: background 0.4s; }
+.prog-seg.scanned { background: var(--success-lt); }
+.prog-seg.active { background: var(--red); animation: pulse-bar 1.2s ease-in-out infinite; }
+@keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+.comp-list { display: flex; flex-direction: column; gap: 7px; }
+.comp-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: center; gap: 11px; transition: border-color 0.3s, background 0.3s; }
+.comp-row.scanned { border-color: rgba(64,192,87,0.3); background: var(--success-dim); }
+.comp-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; font-weight: 600; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border2); transition: all 0.3s; }
+.comp-row.scanned .comp-dot { background: var(--success-dim); color: var(--success-lt); border-color: rgba(64,192,87,0.4); }
+.comp-info { flex: 1; }
+.comp-name { font-size: 12px; font-weight: 600; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
+.comp-uid { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
+.comp-uid.found { color: var(--success-lt); }
+
+/* Hidden RFID input */
+#rfid-input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+
+/* Scan screen bottom bar */
+.scan-bottom { border-top: 1px solid var(--border); background: rgba(7,9,15,0.97); padding: 12px 16px; display: flex; gap: 8px; }
+.btn-assign { flex: 1; background: var(--blue-dim); border: 1px solid rgba(25,113,194,0.4); border-radius: var(--radius-sm); color: #74C0FC; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 11px 8px; cursor: pointer; text-align: center; }
+.btn-assign:active { background: rgba(25,113,194,0.2); }
+.btn-finish { flex: 1; background: var(--amber-dim); border: 1px solid rgba(230,119,0,0.4); border-radius: var(--radius-sm); color: #FD7E14; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 11px 8px; cursor: pointer; text-align: center; }
+.btn-finish:active { background: rgba(230,119,0,0.2); }
+
+/* DETAILS SCREEN */
+.details-body { flex: 1; overflow-y: auto; padding: 20px; }
+.dl { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 9px; margin-top: 20px; }
+.dl:first-child { margin-top: 0; }
+.review-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 4px; }
+.rv-row { display: flex; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.rv-row:last-child { border-bottom: none; }
+.rv-key { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; width: 78px; flex-shrink: 0; }
+.rv-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--success-lt); flex: 1; word-break: break-all; }
+.form-group { margin-bottom: 10px; }
+.form-label { display: block; font-size: 11px; font-weight: 500; color: var(--text-dim); margin-bottom: 5px; }
+.bottom-bar { padding: 12px 20px; border-top: 1px solid var(--border); background: rgba(7,9,15,0.97); }
+.tbd-note { font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px; }
+
+/* ASSIGN SEAT */
+.list-body { flex: 1; overflow-y: auto; padding: 14px 20px; }
+.pack-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 9px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: border-color 0.15s, background 0.15s; }
+.pack-card:active { background: var(--surface2); border-color: var(--blue); }
+.pack-icon { width: 40px; height: 40px; background: var(--blue-dim); border: 1px solid rgba(25,113,194,0.3); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.pack-info { flex: 1; }
+.pack-name { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--text); margin-bottom: 2px; }
+.pack-meta { font-size: 11px; color: var(--text-muted); }
+.pack-arrow { color: var(--text-muted); font-size: 18px; }
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-icon { font-size: 38px; opacity: 0.15; margin-bottom: 12px; }
+.empty-text { font-size: 13px; color: var(--text-muted); line-height: 1.8; }
+
+/* FINISH SESSION */
+.finish-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.summary-cell { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 10px; text-align: center; }
+.summary-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; color: var(--text); line-height: 1; margin-bottom: 4px; }
+.summary-num.ok  { color: var(--success-lt); }
+.summary-num.warn { color: #FD7E14; }
+.summary-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.tbd-item { background: var(--amber-dim); border: 1px solid rgba(230,119,0,0.3); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tbd-item-info { flex: 1; }
+.tbd-item-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.tbd-item-meta { font-size: 11px; color: var(--text-muted); }
+.tbd-resolve-btn { background: rgba(230,119,0,0.2); border: 1px solid rgba(230,119,0,0.5); border-radius: 7px; color: #FD7E14; font-size: 12px; font-weight: 600; padding: 7px 12px; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.tbd-resolve-btn:active { background: rgba(230,119,0,0.3); }
+.all-clear { background: var(--success-dim); border: 1px solid rgba(64,192,87,0.3); border-radius: var(--radius); padding: 20px; text-align: center; margin-bottom: 16px; }
+.all-clear-icon { font-size: 32px; margin-bottom: 8px; }
+.all-clear-text { font-size: 14px; font-weight: 600; color: var(--success-lt); margin-bottom: 4px; }
+.all-clear-sub { font-size: 12px; color: var(--text-muted); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(10px); padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #fff; z-index: 999; opacity: 0; transition: opacity 0.2s, transform 0.2s; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok   { background: #1B4332; border: 1px solid var(--success-lt); }
+.toast.warn { background: #7f1d1d; border: 1px solid #f87171; }
+.toast.info { background: #1c3d5a; border: 1px solid #74C0FC; }
+
+/* LOG SCREEN */
+.log-body { flex: 1; overflow-y: auto; padding: 14px 20px; }
+.log-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.log-count { font-size: 12px; color: var(--text-muted); }
+.export-btn { display: flex; align-items: center; gap: 5px; background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--text-dim); font-size: 12px; padding: 6px 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.export-btn:active { background: var(--surface); }
+.session-group-hdr { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); padding: 6px 0 8px; margin-top: 10px; border-top: 1px solid var(--border); }
+.session-group-hdr:first-child { border-top: none; margin-top: 0; }
+.log-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 14px; margin-bottom: 8px; }
+.log-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.log-pack-name { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--text); }
+.log-method { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; }
+.log-method.rfid { background: var(--red-dim); border: 1px solid rgba(224,49,49,0.3); color: #FF6B6B; }
+.log-method.manual  { background: var(--amber-dim); border: 1px solid rgba(230,119,0,0.3); color: #FD7E14; }
+.log-method.hybrid  { background: var(--blue-dim);  border: 1px solid rgba(25,113,194,0.3); color: #74C0FC; }
+.log-method.unknown { background: var(--surface2);  border: 1px solid var(--border); color: var(--text-muted); }
+.log-assign-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+.log-assign-status.assigned { background: var(--success-dim); color: var(--success-lt); border: 1px solid rgba(64,192,87,0.3); }
+.log-assign-status.tbd { background: var(--amber-dim); color: #FD7E14; border: 1px solid rgba(230,119,0,0.3); }
+.log-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 9px; }
+.log-info-cell { background: var(--surface2); border-radius: 6px; padding: 7px 10px; }
+.log-info-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.log-info-val { font-size: 12px; font-weight: 600; color: var(--text); }
+.log-uids { border-top: 1px solid var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.log-uid-row { display: flex; align-items: center; gap: 8px; }
+.log-uid-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; width: 68px; flex-shrink: 0; }
+.log-uid-val { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); flex: 1; }
+.log-uid-name { font-size: 11px; font-weight: 600; color: var(--text); margin-right: 4px; }
+.clear-log-btn { margin-top: 16px; width: 100%; background: none; border: 1px solid rgba(224,49,49,0.25); border-radius: var(--radius-sm); color: #FF6B6B; font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px; cursor: pointer; }
+.clear-log-btn:active { background: var(--red-dim); }
+
+/* NO SCANNER MODE */
+.ns-body { flex: 1; overflow-y: auto; padding: 20px; }
+.ns-intro { background: var(--amber-dim); border: 1px solid rgba(230,119,0,0.3); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; color: #FD7E14; line-height: 1.6; margin-bottom: 18px; }
+.no-scanner-btn { display: flex; align-items: center; justify-content: center; gap: 7px; background: none; border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 9px 14px; cursor: pointer; width: 100%; margin-top: 4px; }
+.no-scanner-btn:active { border-color: var(--text-muted); color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="header">
+    <div class="logo">🔥</div>
+    <div style="flex:1">
+      <div class="header-title">SCBA Return to Service</div>
+      <div class="header-sub">FireTrack · Session Manager</div>
+    </div>
+    <button class="icon-btn" onclick="openLog()" title="View Log">
+      <svg width="19" height="19" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 7h8M6 10h8M6 13h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div class="home-hero">
+    <div class="app-badge">RFID · Proof of Concept</div>
+    <div class="home-title">SCBA<br><em>TRACKER</em></div>
+    <div class="home-desc">Start a new session to begin logging SCBA return to service checks.</div>
+  </div>
+
+  <div class="home-actions">
+    <div id="active-session-card" style="display:none">
+      <div class="action-label">Active Session</div>
+      <div class="active-session-card">
+        <div class="asc-info">
+          <div class="asc-label">● Session Active</div>
+          <div class="asc-id" id="home-session-id">—</div>
+          <div class="asc-count" id="home-session-count">0 packs logged</div>
+        </div>
+        <button class="asc-btn" onclick="resumeSession()">Resume →</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="action-label" style="margin-bottom:8px">Actions</div>
+      <button class="btn-primary" onclick="newSession()" style="margin-bottom:10px">+ &nbsp;New Session</button>
+      <button class="btn-secondary" onclick="openLog()">📋 &nbsp;View Submission Log</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ SCAN ══════════════ -->
+<div id="screen-scan" class="screen">
+  <div class="header">
+    <div class="logo">🔥</div>
+    <div style="flex:1">
+      <div class="header-title">SCBA — Return to Service</div>
+      <div class="header-sub">RFID Scanning</div>
+    </div>
+    <button class="icon-btn" onclick="confirmReset()" title="Reset Scan" style="color:#FF6B6B;">
+      <svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <button class="icon-btn" onclick="openLog()" title="View Log">
+      <svg width="19" height="19" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 7h8M6 10h8M6 13h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div class="session-banner">
+    <span class="session-id" id="scan-session-id">—</span>
+    <span class="session-dot">Active</span>
+  </div>
+
+  <input type="text" id="rfid-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;">
+
+  <div class="scan-content">
+    <!-- Inspector FF# + Reason -->
+    <div class="ff-select-card">
+      <div class="ff-select-label">Inspector Firefighter #</div>
+      <select class="form-select" id="inspector-ff" onchange="onInspectorChange()" style="margin-bottom:10px;">
+        <option value="">— Select Inspector FF # —</option>
+      </select>
+      <div class="ff-select-label" style="margin-top:4px;">Reason</div>
+      <select class="form-select" id="scan-reason" onchange="onReasonChange()">
+        <option value="">— Select Reason —</option>
+        <option value="Fire">Fire</option>
+        <option value="Training">Training</option>
+        <option value="Truck Check">Truck Check</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <!-- Status -->
+    <div class="status-card">
+      <div class="status-icon" id="status-icon">📡</div>
+      <div class="status-title" id="status-title">READY TO SCAN</div>
+      <div class="status-sub" id="status-sub">Hold any SCBA component to the reader</div>
+    </div>
+
+    <!-- Progress -->
+    <div class="prog-bar">
+      <div class="prog-seg" id="pseg-0"></div>
+      <div class="prog-seg" id="pseg-1"></div>
+      <div class="prog-seg" id="pseg-2"></div>
+      <div class="prog-seg" id="pseg-3"></div>
+    </div>
+
+    <!-- Components -->
+    <div class="comp-list">
+      <div class="comp-row" id="row-mask">
+        <div class="comp-dot" id="dot-mask">1</div>
+        <div class="comp-info">
+          <div class="comp-name">Mask</div>
+          <div class="comp-uid" id="uid-mask">Waiting…</div>
+        </div>
+      </div>
+      <div class="comp-row" id="row-cylinder">
+        <div class="comp-dot" id="dot-cylinder">2</div>
+        <div class="comp-info">
+          <div class="comp-name">Cylinder</div>
+          <div class="comp-uid" id="uid-cylinder">Waiting…</div>
+        </div>
+      </div>
+      <div class="comp-row" id="row-pack">
+        <div class="comp-dot" id="dot-pack">3</div>
+        <div class="comp-info">
+          <div class="comp-name">Pack</div>
+          <div class="comp-uid" id="uid-pack">Waiting…</div>
+        </div>
+      </div>
+      <div class="comp-row" id="row-battery">
+        <div class="comp-dot" id="dot-battery">4</div>
+        <div class="comp-info">
+          <div class="comp-name">Battery</div>
+          <div class="comp-uid" id="uid-battery">Waiting…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No scanner fallback -->
+    <button class="no-scanner-btn" onclick="openNoScanner()">⌨ &nbsp;No Scanner? Select manually</button>
+  </div>
+
+  <div class="scan-bottom">
+    <button class="btn-assign" onclick="openAssignSeat()">📍 Assign Seat</button>
+    <button class="btn-finish" onclick="openFinishSession()">✓ Finish Session</button>
+  </div>
+</div>
+
+
+<!-- ══════════════ DETAILS ══════════════ -->
+<div id="screen-details" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="showScreen('scan');focusInput()">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="header-title">SCBA — Details</div>
+      <div class="header-sub">Confirm &amp; Submit</div>
+    </div>
+  </div>
+
+  <div class="details-body">
+    <div class="dl">Scanned Components</div>
+    <div class="review-card" id="review-card"></div>
+
+    <div class="dl">Inspector</div>
+    <div class="review-card">
+      <div class="rv-row">
+        <div class="rv-key">Inspector</div>
+        <div class="rv-val" id="detail-inspector">—</div>
+      </div>
+    </div>
+
+    <div class="dl">Put-Away Assignment <span style="color:var(--amber);font-size:9px;margin-left:4px;">— Can be updated later</span></div>
+    <div class="form-group">
+      <label class="form-label">Put-Away Firefighter #</label>
+      <select class="form-select" id="putaway-ff">
+        <option value="TBD">TBD</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Truck</label>
+      <select class="form-select" id="truck-select" onchange="onTruckChange('truck-select','seat-select','seat-group')">
+        <option value="TBD">TBD</option>
+        <option value="E1">E1</option>
+        <option value="E1-2">E1-2</option>
+        <option value="R1">R1</option>
+        <option value="S1">S1</option>
+        <option value="Spare">Spare</option>
+      </select>
+    </div>
+    <div class="form-group" id="seat-group">
+      <label class="form-label">Seat / Position</label>
+      <select class="form-select" id="seat-select">
+        <option value="TBD">TBD</option>
+      </select>
+    </div>
+    <div class="tbd-note">TBD fields can be completed later via <strong>Assign Seat</strong></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn-primary" onclick="submitRecord()">✓ &nbsp;Submit</button>
+  </div>
+</div>
+
+
+<!-- ══════════════ ASSIGN SEAT ══════════════ -->
+<div id="screen-assign-seat" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="showScreen('scan');focusInput()">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="header-title">Assign Seat</div>
+      <div class="header-sub">Unassigned Packs — Current Session</div>
+    </div>
+  </div>
+  <div class="list-body" id="assign-seat-list"></div>
+</div>
+
+
+<!-- ══════════════ ASSIGN DETAIL ══════════════ -->
+<div id="screen-assign-detail" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="showScreen('assign-seat')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="header-title" id="assign-detail-title">Pack —</div>
+      <div class="header-sub">Complete Assignment</div>
+    </div>
+  </div>
+
+  <div class="details-body">
+    <div class="dl">Components</div>
+    <div class="review-card" id="assign-components"></div>
+
+    <div class="dl">Put-Away Assignment</div>
+    <div class="form-group">
+      <label class="form-label">Put-Away Firefighter #</label>
+      <select class="form-select" id="assign-putaway-ff">
+        <option value="TBD">TBD</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Truck</label>
+      <select class="form-select" id="assign-truck" onchange="onTruckChange('assign-truck','assign-seat-select','assign-seat-group')">
+        <option value="TBD">TBD</option>
+        <option value="E1">E1</option>
+        <option value="E1-2">E1-2</option>
+        <option value="R1">R1</option>
+        <option value="S1">S1</option>
+        <option value="Spare">Spare</option>
+      </select>
+    </div>
+    <div class="form-group" id="assign-seat-group">
+      <label class="form-label">Seat / Position</label>
+      <select class="form-select" id="assign-seat-select">
+        <option value="TBD">TBD</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn-primary" onclick="saveAssignment()" id="assign-save-btn">✓ &nbsp;Save Assignment</button>
+  </div>
+</div>
+
+
+<!-- ══════════════ FINISH SESSION ══════════════ -->
+<div id="screen-finish-session" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="showScreen('scan');focusInput()">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="header-title">Finish Session</div>
+      <div class="header-sub" id="finish-session-id">—</div>
+    </div>
+  </div>
+  <div class="finish-body">
+    <div class="summary-grid" id="finish-summary"></div>
+    <div id="finish-tbd-list"></div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-primary" onclick="closeSession()" id="close-session-btn">✓ &nbsp;Close Session</button>
+  </div>
+</div>
+
+
+<!-- ══════════════ NO SCANNER ══════════════ -->
+<div id="screen-no-scanner" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="showScreen('scan');focusInput()">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="header-title">Manual Selection</div>
+      <div class="header-sub">No Scanner Mode</div>
+    </div>
+  </div>
+  <div class="ns-body">
+    <div class="ns-intro"><strong>⚠ Scanner unavailable</strong> Select each component by its assigned ID. Use as fallback only.</div>
+    <div class="form-group">
+      <label class="form-label">Inspector Firefighter #</label>
+      <select class="form-select" id="ns-inspector-ff">
+        <option value="">— Select Inspector FF # —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reason</label>
+      <select class="form-select" id="ns-reason">
+        <option value="">— Select Reason —</option>
+        <option value="Fire">Fire</option>
+        <option value="Training">Training</option>
+        <option value="Truck Check">Truck Check</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mask</label>
+      <select class="form-select" id="ns-mask">
+        <option value="">— Select Mask —</option>
+        <option value="MASK-1|8C825024530104E0">Mask 1</option>
+        <option value="MASK-2|893A5124530104E0">Mask 2</option>
+        <option value="MASK-3|F9F45024530104E0">Mask 3</option>
+        <option value="MASK-4|58F15024530104E0">Mask 4</option>
+        <option value="MASK-5|8EE65024530104E0">Mask 5</option>
+        <option value="MASK-6|8C325124530104E0">Mask 6</option>
+        <option value="MASK-7|28125124530104">Mask 7</option>
+        <option value="MASK-8|23F45024530104E0">Mask 8</option>
+        <option value="MASK-9|DBCF5024530104E0">Mask 9</option>
+        <option value="MASK-10|D8C25024530104E0">Mask 10</option>
+        <option value="MASK-11|26975024530104">Mask 11</option>
+        <option value="MASK-12|4E035124530104E0">Mask 12</option>
+        <option value="MASK-13|74E65024530104E0">Mask 13</option>
+        <option value="MASK-14|78E25024530104E0">Mask 14</option>
+        <option value="MASK-15|462F5124530104E0">Mask 15</option>
+        <option value="MASK-16|32F65024530104E0">Mask 16</option>
+        <option value="MASK-17|022A5124530104E0">Mask 17</option>
+        <option value="MASK-18|02EA5024530104E0">Mask 18</option>
+        <option value="MASK-19|2F1B5124530104E0">Mask 19</option>
+        <option value="MASK-20|0E025124530104E0">Mask 20</option>
+        <option value="MASK-21|F3955024530104E0">Mask 21</option>
+        <option value="MASK-22|3BE95024530104E0">Mask 22</option>
+        <option value="MASK-23|65195124530104">Mask 23</option>
+        <option value="MASK-24|19A95024530104E0">Mask 24</option>
+        <option value="MASK-25|F8235124530104E0">Mask 25</option>
+        <option value="MASK-26|48B25024530104E0">Mask 26</option>
+        <option value="MASK-27|4ADA5024530104E0">Mask 27</option>
+        <option value="MASK-28|EAC25024530104E0">Mask 28</option>
+        <option value="MASK-29|7EF85024530104E0">Mask 29</option>
+        <option value="MASK-35|62F65822530104E0">Mask 35</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cylinder</label>
+      <select class="form-select" id="ns-cylinder">
+        <option value="">— Select Cylinder —</option>
+        <option value="CYL-1|CC575922530104E0">Cylinder 1</option>
+        <option value="CYL-2|CCAD5922530104E0">Cylinder 2</option>
+        <option value="CYL-3|344C5922530104E0">Cylinder 3</option>
+        <option value="CYL-4|5DA05922530104E0">Cylinder 4</option>
+        <option value="CYL-5|46175922530104E0">Cylinder 5</option>
+        <option value="CYL-6|F2315922530104E0">Cylinder 6</option>
+        <option value="CYL-7|A39E5922530104E0">Cylinder 7</option>
+        <option value="CYL-8|20405922530104E0">Cylinder 8</option>
+        <option value="CYL-9|B19A5922530104E0">Cylinder 9</option>
+        <option value="CYL-10|91545922530104E0">Cylinder 10</option>
+        <option value="CYL-11|CC555922530104E0">Cylinder 11</option>
+        <option value="CYL-12|C73B5922530104E0">Cylinder 12</option>
+        <option value="CYL-13|A4875922530104E0">Cylinder 13</option>
+        <option value="CYL-14|69285922530104E0">Cylinder 14</option>
+        <option value="CYL-15|EB0A5922530104E0">Cylinder 15</option>
+        <option value="CYL-16|10055922530104E0">Cylinder 16</option>
+        <option value="CYL-17|D21F5922530104E0">Cylinder 17</option>
+        <option value="CYL-18|363B5922530104E0">Cylinder 18</option>
+        <option value="CYL-19|985F5922530104E0">Cylinder 19</option>
+        <option value="CYL-20|F2A85922530104E0">Cylinder 20</option>
+        <option value="CYL-21|B64F5922530104E0">Cylinder 21</option>
+        <option value="CYL-22|71855922530104E0">Cylinder 22</option>
+        <option value="CYL-23|E4415922530104E0">Cylinder 23</option>
+        <option value="CYL-24|0D925922530104E0">Cylinder 24</option>
+        <option value="CYL-25|44665922530104E0">Cylinder 25</option>
+        <option value="CYL-26|1C475922530104E0">Cylinder 26</option>
+        <option value="CYL-27|412D5922530104E0">Cylinder 27</option>
+        <option value="CYL-28|220C5922530104E0">Cylinder 28</option>
+        <option value="CYL-29|D20F5922530104E0">Cylinder 29</option>
+        <option value="CYL-30|3F9F5922530104E0">Cylinder 30</option>
+        <option value="CYL-31|278D5922530104E0">Cylinder 31</option>
+        <option value="CYL-32|06595922530104E0">Cylinder 32</option>
+        <option value="CYL-33|EE8B5922530104E0">Cylinder 33</option>
+        <option value="CYL-34|BE8A5922530104E0">Cylinder 34</option>
+        <option value="CYL-35|D2035922530104E0">Cylinder 35</option>
+        <option value="CYL-36|FD695922530104E0">Cylinder 36</option>
+        <option value="CYL-37|BD0E5922530104E0">Cylinder 37</option>
+        <option value="CYL-38|CC3B5922530104E0">Cylinder 38</option>
+        <option value="CYL-39|48615922530104E0">Cylinder 39</option>
+        <option value="CYL-40|774C5922530104E0">Cylinder 40</option>
+        <option value="CYL-41|CF3B5922530104E0">Cylinder 41</option>
+        <option value="CYL-42|607C5922530104E0">Cylinder 42</option>
+        <option value="CYL-43|46855922530104E0">Cylinder 43</option>
+        <option value="CYL-44|9F3A5922530104E0">Cylinder 44</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pack</label>
+      <select class="form-select" id="ns-pack">
+        <option value="">— Select Pack —</option>
+        <option value="PACK-Pack A1|B59FBE27530104E0">Pack A1</option>
+        <option value="PACK-Pack A2|C015BF27530104E0">Pack A2</option>
+        <option value="PACK-Pack A3|4FF0BE27530104E0">Pack A3</option>
+        <option value="PACK-Pack A4|021EBF27530104E0">Pack A4</option>
+        <option value="PACK-Pack A5|B121BF27530104E0">Pack A5</option>
+        <option value="PACK-Pack A6|CCDFBE27530104E0">Pack A6</option>
+        <option value="PACK-Pack A7|29EFBE27530104E0">Pack A7</option>
+        <option value="PACK-Pack A8|7FB1BE27530104E0">Pack A8</option>
+        <option value="PACK-Pack A9|985EBE27530104E0">Pack A9</option>
+        <option value="PACK-Pack A10|A5D5BE27530104E0">Pack A10</option>
+        <option value="PACK-Pack A11|2605BF27530104E0">Pack A11</option>
+        <option value="PACK-Pack A12|A211BF27530104E0">Pack A12</option>
+        <option value="PACK-Pack A13|4516BF27530104E0">Pack A13</option>
+        <option value="PACK-Pack A14|1E1CBF27530104E0">Pack A14</option>
+        <option value="PACK-Pack A15|79CABE27530104E0">Pack A15</option>
+        <option value="PACK-Pack A16|5821BF27530104E0">Pack A16</option>
+        <option value="PACK-Pack A17|49D3BE27530104E0">Pack A17</option>
+        <option value="PACK-Pack A18|58CCBE27530104E0">Pack A18</option>
+        <option value="PACK-Pack A19|51B6BE27530104E0">Pack A19</option>
+        <option value="PACK-Pack A20|6ABABE27530104E0">Pack A20</option>
+        <option value="PACK-Pack A21|BB06BF27530104E0">Pack A21</option>
+        <option value="PACK-Pack A22|DAFFBD27530104E0">Pack A22</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Battery</label>
+      <select class="form-select" id="ns-battery">
+        <option value="">— Select Battery —</option>
+        <option value="BAT-B1|04171B45C62A81">Battery B1</option>
+        <option value="BAT-B2|04181B45C62A81">Battery B2</option>
+        <option value="BAT-B3|04D82645C62A81">Battery B3</option>
+        <option value="BAT-B4|048C2C45C62A81">Battery B4</option>
+        <option value="BAT-B5|04E83345C62A81">Battery B5</option>
+        <option value="BAT-B6|046D3945C62A81">Battery B6</option>
+        <option value="BAT-B7|049F4445C62A81">Battery B7</option>
+        <option value="BAT-B8|04D64945C62A81">Battery B8</option>
+        <option value="BAT-B9|041E4E45C62A81">Battery B9</option>
+        <option value="BAT-B10|04CB5245C62A81">Battery B10</option>
+        <option value="BAT-B11|04225C45C62A81">Battery B11</option>
+        <option value="BAT-B12|049CA5B1D12A81">Battery B12</option>
+        <option value="BAT-B13|04D25245C62A81">Battery B13</option>
+        <option value="BAT-B14|04235C45C62A81">Battery B14</option>
+        <option value="BAT-B15|04C16145C62A81">Battery B15</option>
+        <option value="BAT-B16|049D6645C62A81">Battery B16</option>
+        <option value="BAT-B17|04F96A45C62A81">Battery B17</option>
+        <option value="BAT-B18|04FE6A45C62A81">Battery B18</option>
+        <option value="BAT-B19|049C6645C62A81">Battery B19</option>
+        <option value="BAT-B20|04C26145C62A81">Battery B20</option>
+        <option value="BAT-B21|04D73E45C62A81">Battery B21</option>
+        <option value="BAT-B22|04D84945C62A81">Battery B22</option>
+        <option value="BAT-B23|046F3945C62A81">Battery B23</option>
+        <option value="BAT-B24|04DD3345C62A81">Battery B24</option>
+        <option value="BAT-B25|048B2C45C62A81">Battery B25</option>
+        <option value="BAT-B26|04D92645C62A81">Battery B26</option>
+        <option value="BAT-B27|04B41DB1D12A81">Battery B27</option>
+        <option value="BAT-B28|04ACABB1D12A81">Battery B28</option>
+      </select>
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-primary" onclick="submitManualSelection()">→ &nbsp;Continue</button>
+  </div>
+</div>
+
+
+<!-- ══════════════ LOG ══════════════ -->
+<div id="screen-log" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="goBackFromLog()">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div style="flex:1">
+      <div class="header-title">Submission Log</div>
+      <div class="header-sub">All Sessions</div>
+    </div>
+  </div>
+  <div class="log-body">
+    <div class="log-toolbar">
+      <span class="log-count" id="log-count">0 records</span>
+      <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+    <div id="log-list"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// INVENTORY
+// ══════════════════════════════════════════════════════════
+const INVENTORY = {
+  // ── Packs (A1–A22) ──
+  'B59FBE27530104E0': { type: 'pack', label: 'Pack A1' },
+  'b59fbe27530104e0': { type: 'pack', label: 'Pack A1' },
+  'C015BF27530104E0': { type: 'pack', label: 'Pack A2' },
+  'c015bf27530104e0': { type: 'pack', label: 'Pack A2' },
+  '4FF0BE27530104E0': { type: 'pack', label: 'Pack A3' },
+  '4ff0be27530104e0': { type: 'pack', label: 'Pack A3' },
+  '021EBF27530104E0': { type: 'pack', label: 'Pack A4' },
+  '021ebf27530104e0': { type: 'pack', label: 'Pack A4' },
+  'B121BF27530104E0': { type: 'pack', label: 'Pack A5' },
+  'b121bf27530104e0': { type: 'pack', label: 'Pack A5' },
+  'CCDFBE27530104E0': { type: 'pack', label: 'Pack A6' },
+  'ccdfbe27530104e0': { type: 'pack', label: 'Pack A6' },
+  '29EFBE27530104E0': { type: 'pack', label: 'Pack A7' },
+  '29efbe27530104e0': { type: 'pack', label: 'Pack A7' },
+  '7FB1BE27530104E0': { type: 'pack', label: 'Pack A8' },
+  '7fb1be27530104e0': { type: 'pack', label: 'Pack A8' },
+  '985EBE27530104E0': { type: 'pack', label: 'Pack A9' },
+  '985ebe27530104e0': { type: 'pack', label: 'Pack A9' },
+  'A5D5BE27530104E0': { type: 'pack', label: 'Pack A10' },
+  'a5d5be27530104e0': { type: 'pack', label: 'Pack A10' },
+  '2605BF27530104E0': { type: 'pack', label: 'Pack A11' },
+  '2605bf27530104e0': { type: 'pack', label: 'Pack A11' },
+  'A211BF27530104E0': { type: 'pack', label: 'Pack A12' },
+  'a211bf27530104e0': { type: 'pack', label: 'Pack A12' },
+  '4516BF27530104E0': { type: 'pack', label: 'Pack A13' },
+  '4516bf27530104e0': { type: 'pack', label: 'Pack A13' },
+  '1E1CBF27530104E0': { type: 'pack', label: 'Pack A14' },
+  '1e1cbf27530104e0': { type: 'pack', label: 'Pack A14' },
+  '79CABE27530104E0': { type: 'pack', label: 'Pack A15' },
+  '79cabe27530104e0': { type: 'pack', label: 'Pack A15' },
+  '5821BF27530104E0': { type: 'pack', label: 'Pack A16' },
+  '5821bf27530104e0': { type: 'pack', label: 'Pack A16' },
+  '49D3BE27530104E0': { type: 'pack', label: 'Pack A17' },
+  '49d3be27530104e0': { type: 'pack', label: 'Pack A17' },
+  '58CCBE27530104E0': { type: 'pack', label: 'Pack A18' },
+  '58ccbe27530104e0': { type: 'pack', label: 'Pack A18' },
+  '51B6BE27530104E0': { type: 'pack', label: 'Pack A19' },
+  '51b6be27530104e0': { type: 'pack', label: 'Pack A19' },
+  '6ABABE27530104E0': { type: 'pack', label: 'Pack A20' },
+  '6ababe27530104e0': { type: 'pack', label: 'Pack A20' },
+  'BB06BF27530104E0': { type: 'pack', label: 'Pack A21' },
+  'bb06bf27530104e0': { type: 'pack', label: 'Pack A21' },
+  'DAFFBD27530104E0': { type: 'pack', label: 'Pack A22' },
+  'daffbd27530104e0': { type: 'pack', label: 'Pack A22' },
+
+  // ── Cylinders (1–44 service) ──
+  'CC575922530104E0': { type: 'cylinder', label: 'Cylinder 1' },
+  'cc575922530104e0': { type: 'cylinder', label: 'Cylinder 1' },
+  'CCAD5922530104E0': { type: 'cylinder', label: 'Cylinder 2' },
+  'ccad5922530104e0': { type: 'cylinder', label: 'Cylinder 2' },
+  '344C5922530104E0': { type: 'cylinder', label: 'Cylinder 3' },
+  '344c5922530104e0': { type: 'cylinder', label: 'Cylinder 3' },
+  '5DA05922530104E0': { type: 'cylinder', label: 'Cylinder 4' },
+  '5da05922530104e0': { type: 'cylinder', label: 'Cylinder 4' },
+  '46175922530104E0': { type: 'cylinder', label: 'Cylinder 5' },
+  '46175922530104e0': { type: 'cylinder', label: 'Cylinder 5' },
+  'F2315922530104E0': { type: 'cylinder', label: 'Cylinder 6' },
+  'f2315922530104e0': { type: 'cylinder', label: 'Cylinder 6' },
+  'A39E5922530104E0': { type: 'cylinder', label: 'Cylinder 7' },
+  'a39e5922530104e0': { type: 'cylinder', label: 'Cylinder 7' },
+  '20405922530104E0': { type: 'cylinder', label: 'Cylinder 8' },
+  '20405922530104e0': { type: 'cylinder', label: 'Cylinder 8' },
+  'B19A5922530104E0': { type: 'cylinder', label: 'Cylinder 9' },
+  'b19a5922530104e0': { type: 'cylinder', label: 'Cylinder 9' },
+  '91545922530104E0': { type: 'cylinder', label: 'Cylinder 10' },
+  '91545922530104e0': { type: 'cylinder', label: 'Cylinder 10' },
+  'CC555922530104E0': { type: 'cylinder', label: 'Cylinder 11' },
+  'cc555922530104e0': { type: 'cylinder', label: 'Cylinder 11' },
+  'C73B5922530104E0': { type: 'cylinder', label: 'Cylinder 12' },
+  'c73b5922530104e0': { type: 'cylinder', label: 'Cylinder 12' },
+  'A4875922530104E0': { type: 'cylinder', label: 'Cylinder 13' },
+  'a4875922530104e0': { type: 'cylinder', label: 'Cylinder 13' },
+  '69285922530104E0': { type: 'cylinder', label: 'Cylinder 14' },
+  '69285922530104e0': { type: 'cylinder', label: 'Cylinder 14' },
+  'EB0A5922530104E0': { type: 'cylinder', label: 'Cylinder 15' },
+  'eb0a5922530104e0': { type: 'cylinder', label: 'Cylinder 15' },
+  '10055922530104E0': { type: 'cylinder', label: 'Cylinder 16' },
+  '10055922530104e0': { type: 'cylinder', label: 'Cylinder 16' },
+  'D21F5922530104E0': { type: 'cylinder', label: 'Cylinder 17' },
+  'd21f5922530104e0': { type: 'cylinder', label: 'Cylinder 17' },
+  '363B5922530104E0': { type: 'cylinder', label: 'Cylinder 18' },
+  '363b5922530104e0': { type: 'cylinder', label: 'Cylinder 18' },
+  '985F5922530104E0': { type: 'cylinder', label: 'Cylinder 19' },
+  '985f5922530104e0': { type: 'cylinder', label: 'Cylinder 19' },
+  'F2A85922530104E0': { type: 'cylinder', label: 'Cylinder 20' },
+  'f2a85922530104e0': { type: 'cylinder', label: 'Cylinder 20' },
+  'B64F5922530104E0': { type: 'cylinder', label: 'Cylinder 21' },
+  'b64f5922530104e0': { type: 'cylinder', label: 'Cylinder 21' },
+  '71855922530104E0': { type: 'cylinder', label: 'Cylinder 22' },
+  '71855922530104e0': { type: 'cylinder', label: 'Cylinder 22' },
+  'E4415922530104E0': { type: 'cylinder', label: 'Cylinder 23' },
+  'e4415922530104e0': { type: 'cylinder', label: 'Cylinder 23' },
+  '0D925922530104E0': { type: 'cylinder', label: 'Cylinder 24' },
+  '0d925922530104e0': { type: 'cylinder', label: 'Cylinder 24' },
+  '44665922530104E0': { type: 'cylinder', label: 'Cylinder 25' },
+  '44665922530104e0': { type: 'cylinder', label: 'Cylinder 25' },
+  '1C475922530104E0': { type: 'cylinder', label: 'Cylinder 26' },
+  '1c475922530104e0': { type: 'cylinder', label: 'Cylinder 26' },
+  '412D5922530104E0': { type: 'cylinder', label: 'Cylinder 27' },
+  '412d5922530104e0': { type: 'cylinder', label: 'Cylinder 27' },
+  '220C5922530104E0': { type: 'cylinder', label: 'Cylinder 28' },
+  '220c5922530104e0': { type: 'cylinder', label: 'Cylinder 28' },
+  'D20F5922530104E0': { type: 'cylinder', label: 'Cylinder 29' },
+  'd20f5922530104e0': { type: 'cylinder', label: 'Cylinder 29' },
+  '3F9F5922530104E0': { type: 'cylinder', label: 'Cylinder 30' },
+  '3f9f5922530104e0': { type: 'cylinder', label: 'Cylinder 30' },
+  '278D5922530104E0': { type: 'cylinder', label: 'Cylinder 31' },
+  '278d5922530104e0': { type: 'cylinder', label: 'Cylinder 31' },
+  '06595922530104E0': { type: 'cylinder', label: 'Cylinder 32' },
+  '06595922530104e0': { type: 'cylinder', label: 'Cylinder 32' },
+  'EE8B5922530104E0': { type: 'cylinder', label: 'Cylinder 33' },
+  'ee8b5922530104e0': { type: 'cylinder', label: 'Cylinder 33' },
+  'BE8A5922530104E0': { type: 'cylinder', label: 'Cylinder 34' },
+  'be8a5922530104e0': { type: 'cylinder', label: 'Cylinder 34' },
+  'D2035922530104E0': { type: 'cylinder', label: 'Cylinder 35' },
+  'd2035922530104e0': { type: 'cylinder', label: 'Cylinder 35' },
+  'FD695922530104E0': { type: 'cylinder', label: 'Cylinder 36' },
+  'fd695922530104e0': { type: 'cylinder', label: 'Cylinder 36' },
+  'BD0E5922530104E0': { type: 'cylinder', label: 'Cylinder 37' },
+  'bd0e5922530104e0': { type: 'cylinder', label: 'Cylinder 37' },
+  'CC3B5922530104E0': { type: 'cylinder', label: 'Cylinder 38' },
+  'cc3b5922530104e0': { type: 'cylinder', label: 'Cylinder 38' },
+  '48615922530104E0': { type: 'cylinder', label: 'Cylinder 39' },
+  '48615922530104e0': { type: 'cylinder', label: 'Cylinder 39' },
+  '774C5922530104E0': { type: 'cylinder', label: 'Cylinder 40' },
+  '774c5922530104e0': { type: 'cylinder', label: 'Cylinder 40' },
+  'CF3B5922530104E0': { type: 'cylinder', label: 'Cylinder 41' },
+  'cf3b5922530104e0': { type: 'cylinder', label: 'Cylinder 41' },
+  '607C5922530104E0': { type: 'cylinder', label: 'Cylinder 42' },
+  '607c5922530104e0': { type: 'cylinder', label: 'Cylinder 42' },
+  '46855922530104E0': { type: 'cylinder', label: 'Cylinder 43' },
+  '46855922530104e0': { type: 'cylinder', label: 'Cylinder 43' },
+  '9F3A5922530104E0': { type: 'cylinder', label: 'Cylinder 44' },
+  '9f3a5922530104e0': { type: 'cylinder', label: 'Cylinder 44' },
+
+  // ── Batteries (B1–B28) ──
+  '04171B45C62A81': { type: 'battery', label: 'Battery B1' },
+  '04171b45c62a81': { type: 'battery', label: 'Battery B1' },
+  '04181B45C62A81': { type: 'battery', label: 'Battery B2' },
+  '04181b45c62a81': { type: 'battery', label: 'Battery B2' },
+  '04D82645C62A81': { type: 'battery', label: 'Battery B3' },
+  '04d82645c62a81': { type: 'battery', label: 'Battery B3' },
+  '048C2C45C62A81': { type: 'battery', label: 'Battery B4' },
+  '048c2c45c62a81': { type: 'battery', label: 'Battery B4' },
+  '04E83345C62A81': { type: 'battery', label: 'Battery B5' },
+  '04e83345c62a81': { type: 'battery', label: 'Battery B5' },
+  '046D3945C62A81': { type: 'battery', label: 'Battery B6' },
+  '046d3945c62a81': { type: 'battery', label: 'Battery B6' },
+  '049F4445C62A81': { type: 'battery', label: 'Battery B7' },
+  '049f4445c62a81': { type: 'battery', label: 'Battery B7' },
+  '04D64945C62A81': { type: 'battery', label: 'Battery B8' },
+  '04d64945c62a81': { type: 'battery', label: 'Battery B8' },
+  '041E4E45C62A81': { type: 'battery', label: 'Battery B9' },
+  '041e4e45c62a81': { type: 'battery', label: 'Battery B9' },
+  '04CB5245C62A81': { type: 'battery', label: 'Battery B10' },
+  '04cb5245c62a81': { type: 'battery', label: 'Battery B10' },
+  '04225C45C62A81': { type: 'battery', label: 'Battery B11' },
+  '04225c45c62a81': { type: 'battery', label: 'Battery B11' },
+  '049CA5B1D12A81': { type: 'battery', label: 'Battery B12' },
+  '049ca5b1d12a81': { type: 'battery', label: 'Battery B12' },
+  '04D25245C62A81': { type: 'battery', label: 'Battery B13' },
+  '04d25245c62a81': { type: 'battery', label: 'Battery B13' },
+  '04235C45C62A81': { type: 'battery', label: 'Battery B14' },
+  '04235c45c62a81': { type: 'battery', label: 'Battery B14' },
+  '04C16145C62A81': { type: 'battery', label: 'Battery B15' },
+  '04c16145c62a81': { type: 'battery', label: 'Battery B15' },
+  '049D6645C62A81': { type: 'battery', label: 'Battery B16' },
+  '049d6645c62a81': { type: 'battery', label: 'Battery B16' },
+  '04F96A45C62A81': { type: 'battery', label: 'Battery B17' },
+  '04f96a45c62a81': { type: 'battery', label: 'Battery B17' },
+  '04FE6A45C62A81': { type: 'battery', label: 'Battery B18' },
+  '04fe6a45c62a81': { type: 'battery', label: 'Battery B18' },
+  '049C6645C62A81': { type: 'battery', label: 'Battery B19' },
+  '049c6645c62a81': { type: 'battery', label: 'Battery B19' },
+  '04C26145C62A81': { type: 'battery', label: 'Battery B20' },
+  '04c26145c62a81': { type: 'battery', label: 'Battery B20' },
+  '04D73E45C62A81': { type: 'battery', label: 'Battery B21' },
+  '04d73e45c62a81': { type: 'battery', label: 'Battery B21' },
+  '04D84945C62A81': { type: 'battery', label: 'Battery B22' },
+  '04d84945c62a81': { type: 'battery', label: 'Battery B22' },
+  '046F3945C62A81': { type: 'battery', label: 'Battery B23' },
+  '046f3945c62a81': { type: 'battery', label: 'Battery B23' },
+  '04DD3345C62A81': { type: 'battery', label: 'Battery B24' },
+  '04dd3345c62a81': { type: 'battery', label: 'Battery B24' },
+  '048B2C45C62A81': { type: 'battery', label: 'Battery B25' },
+  '048b2c45c62a81': { type: 'battery', label: 'Battery B25' },
+  '04D92645C62A81': { type: 'battery', label: 'Battery B26' },
+  '04d92645c62a81': { type: 'battery', label: 'Battery B26' },
+  '04B41DB1D12A81': { type: 'battery', label: 'Battery B27' },
+  '04b41db1d12a81': { type: 'battery', label: 'Battery B27' },
+  '04ACABB1D12A81': { type: 'battery', label: 'Battery B28' },
+  '04acabb1d12a81': { type: 'battery', label: 'Battery B28' },
+
+  // ── Masks (service — 1–29, 35) ──
+  // Note: Masks 7, 11, 23, 32 registered with both 7-byte and 8-byte UIDs
+  '8C825024530104E0': { type: 'mask', label: 'Mask 1' },
+  '8c825024530104e0': { type: 'mask', label: 'Mask 1' },
+  '893A5124530104E0': { type: 'mask', label: 'Mask 2' },
+  '893a5124530104e0': { type: 'mask', label: 'Mask 2' },
+  'F9F45024530104E0': { type: 'mask', label: 'Mask 3' },
+  'f9f45024530104e0': { type: 'mask', label: 'Mask 3' },
+  '58F15024530104E0': { type: 'mask', label: 'Mask 4' },
+  '58f15024530104e0': { type: 'mask', label: 'Mask 4' },
+  '8EE65024530104E0': { type: 'mask', label: 'Mask 5' },
+  '8ee65024530104e0': { type: 'mask', label: 'Mask 5' },
+  '8C325124530104E0': { type: 'mask', label: 'Mask 6' },
+  '8c325124530104e0': { type: 'mask', label: 'Mask 6' },
+  '28125124530104': { type: 'mask', label: 'Mask 7' },
+  '28125124530104': { type: 'mask', label: 'Mask 7' },
+  '28125124530104E0': { type: 'mask', label: 'Mask 7' },
+  '28125124530104e0': { type: 'mask', label: 'Mask 7' },
+  '23F45024530104E0': { type: 'mask', label: 'Mask 8' },
+  '23f45024530104e0': { type: 'mask', label: 'Mask 8' },
+  'DBCF5024530104E0': { type: 'mask', label: 'Mask 9' },
+  'dbcf5024530104e0': { type: 'mask', label: 'Mask 9' },
+  'D8C25024530104E0': { type: 'mask', label: 'Mask 10' },
+  'd8c25024530104e0': { type: 'mask', label: 'Mask 10' },
+  '26975024530104': { type: 'mask', label: 'Mask 11' },
+  '26975024530104': { type: 'mask', label: 'Mask 11' },
+  '26975024530104E0': { type: 'mask', label: 'Mask 11' },
+  '26975024530104e0': { type: 'mask', label: 'Mask 11' },
+  '4E035124530104E0': { type: 'mask', label: 'Mask 12' },
+  '4e035124530104e0': { type: 'mask', label: 'Mask 12' },
+  '74E65024530104E0': { type: 'mask', label: 'Mask 13' },
+  '74e65024530104e0': { type: 'mask', label: 'Mask 13' },
+  '78E25024530104E0': { type: 'mask', label: 'Mask 14' },
+  '78e25024530104e0': { type: 'mask', label: 'Mask 14' },
+  '462F5124530104E0': { type: 'mask', label: 'Mask 15' },
+  '462f5124530104e0': { type: 'mask', label: 'Mask 15' },
+  '32F65024530104E0': { type: 'mask', label: 'Mask 16' },
+  '32f65024530104e0': { type: 'mask', label: 'Mask 16' },
+  '022A5124530104E0': { type: 'mask', label: 'Mask 17' },
+  '022a5124530104e0': { type: 'mask', label: 'Mask 17' },
+  '02EA5024530104E0': { type: 'mask', label: 'Mask 18' },
+  '02ea5024530104e0': { type: 'mask', label: 'Mask 18' },
+  '2F1B5124530104E0': { type: 'mask', label: 'Mask 19' },
+  '2f1b5124530104e0': { type: 'mask', label: 'Mask 19' },
+  '0E025124530104E0': { type: 'mask', label: 'Mask 20' },
+  '0e025124530104e0': { type: 'mask', label: 'Mask 20' },
+  'F3955024530104E0': { type: 'mask', label: 'Mask 21' },
+  'f3955024530104e0': { type: 'mask', label: 'Mask 21' },
+  '3BE95024530104E0': { type: 'mask', label: 'Mask 22' },
+  '3be95024530104e0': { type: 'mask', label: 'Mask 22' },
+  '65195124530104': { type: 'mask', label: 'Mask 23' },
+  '65195124530104': { type: 'mask', label: 'Mask 23' },
+  '65195124530104E0': { type: 'mask', label: 'Mask 23' },
+  '65195124530104e0': { type: 'mask', label: 'Mask 23' },
+  '19A95024530104E0': { type: 'mask', label: 'Mask 24' },
+  '19a95024530104e0': { type: 'mask', label: 'Mask 24' },
+  'F8235124530104E0': { type: 'mask', label: 'Mask 25' },
+  'f8235124530104e0': { type: 'mask', label: 'Mask 25' },
+  '48B25024530104E0': { type: 'mask', label: 'Mask 26' },
+  '48b25024530104e0': { type: 'mask', label: 'Mask 26' },
+  '4ADA5024530104E0': { type: 'mask', label: 'Mask 27' },
+  '4ada5024530104e0': { type: 'mask', label: 'Mask 27' },
+  'EAC25024530104E0': { type: 'mask', label: 'Mask 28' },
+  'eac25024530104e0': { type: 'mask', label: 'Mask 28' },
+  '7EF85024530104E0': { type: 'mask', label: 'Mask 29' },
+  '7ef85024530104e0': { type: 'mask', label: 'Mask 29' },
+  '62F65822530104E0': { type: 'mask', label: 'Mask 35' },
+  '62f65822530104e0': { type: 'mask', label: 'Mask 35' },
+};
+
+// ── Restricted UIDs — flagged but not accepted ─────────────
+const RESTRICTED = {
+  // RIT Cylinders (still restricted)
+  'CA475922530104E0': { restricted: true, rtype: 'rit', label: 'Cylinder 45', msg: '⚠ RIT Cylinder — Not for service' },
+  'ca475922530104e0': { restricted: true, rtype: 'rit', label: 'Cylinder 45', msg: '⚠ RIT Cylinder — Not for service' },
+  '60B14722530104E0': { restricted: true, rtype: 'rit', label: 'Cylinder 46', msg: '⚠ RIT Cylinder — Not for service' },
+  '60b14722530104e0': { restricted: true, rtype: 'rit', label: 'Cylinder 46', msg: '⚠ RIT Cylinder — Not for service' },
+  // Small Masks (still restricted)
+  '3DA55822530104E0': { restricted: true, rtype: 'size', label: 'Mask 30', msg: '⚠ Small Mask — Mediums only on truck' },
+  '3da55822530104e0': { restricted: true, rtype: 'size', label: 'Mask 30', msg: '⚠ Small Mask — Mediums only on truck' },
+  'A76D4324530104E0': { restricted: true, rtype: 'size', label: 'Mask 31', msg: '⚠ Small Mask — Mediums only on truck' },
+  'a76d4324530104e0': { restricted: true, rtype: 'size', label: 'Mask 31', msg: '⚠ Small Mask — Mediums only on truck' },
+  '57264324530104':   { restricted: true, rtype: 'size', label: 'Mask 32', msg: '⚠ Small Mask — Mediums only on truck' },
+  '57264324530104e0': { restricted: true, rtype: 'size', label: 'Mask 32', msg: '⚠ Small Mask — Mediums only on truck' },
+  // Large Masks (still restricted)
+  '77AF5024530104E0': { restricted: true, rtype: 'size', label: 'Mask 33', msg: '⚠ Large Mask — Mediums only on truck' },
+  '77af5024530104e0': { restricted: true, rtype: 'size', label: 'Mask 33', msg: '⚠ Large Mask — Mediums only on truck' },
+  '18CC5024530104E0': { restricted: true, rtype: 'size', label: 'Mask 34', msg: '⚠ Large Mask — Mediums only on truck' },
+  '18cc5024530104e0': { restricted: true, rtype: 'size', label: 'Mask 34', msg: '⚠ Large Mask — Mediums only on truck' },
+  // Masks 27-29 REMOVED — repaired and returned to service
+  // Mask 35 REMOVED — no longer RIT, returned to regular rotation
+};
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let currentSession = null;
+let scanned     = { mask: null, cylinder: null, pack: null, battery: null };
+let scanMethods = { mask: null, cylinder: null, pack: null, battery: null };
+let currentAssignRef = null; // ref of record being assigned
+let logReturnScreen = 'home'; // where log back button goes
+
+// ══════════════════════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════════════════════
+const LOG_KEY = 'scba_log_v2';
+const SES_KEY = 'scba_session_v2';
+
+function loadLog() {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch(_) { return []; }
+}
+function saveLog(log) {
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); } catch(_) {}
+}
+function appendRecord(rec) {
+  const log = loadLog();
+  log.unshift(rec);
+  saveLog(log);
+}
+function updateRecord(ref, updates) {
+  const log = loadLog();
+  const i = log.findIndex(r => r.ref === ref);
+  if (i !== -1) { log[i] = { ...log[i], ...updates }; saveLog(log); }
+}
+function saveSession(ses) {
+  try { localStorage.setItem(SES_KEY, JSON.stringify(ses)); } catch(_) {}
+}
+function loadSession() {
+  try { return JSON.parse(localStorage.getItem(SES_KEY)); } catch(_) { return null; }
+}
+function clearSession() {
+  try { localStorage.removeItem(SES_KEY); } catch(_) {}
+}
+
+// ══════════════════════════════════════════════════════════
+// SESSION
+// ══════════════════════════════════════════════════════════
+function generateSessionId() {
+  const now  = new Date();
+  const date = now.toLocaleDateString('en-CA').replace(/-/g, '');
+  const h    = now.getHours();
+  const m    = String(now.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hr   = String(h % 12 || 12).padStart(2, '0');
+  return `SES-${date}-${hr}${m}${ampm}`;
+}
+
+function newSession() {
+  currentSession = { id: generateSessionId(), startTime: new Date().toISOString() };
+  saveSession(currentSession);
+  resetScan();
+  // Clear reason between sessions but not between packs
+  const reasonSel = document.getElementById('scan-reason');
+  reasonSel.value = '';
+  reasonSel.className = 'form-select';
+  updateHomeCard();
+  showScreen('scan');
+  focusInput();
+}
+
+function resumeSession() {
+  if (!currentSession) return;
+  resetScan();
+  showScreen('scan');
+  focusInput();
+}
+
+function getCurrentSessionRecords() {
+  if (!currentSession) return [];
+  return loadLog().filter(r => r.sessionId === currentSession.id);
+}
+
+function getUnassignedRecords() {
+  // Show packs where seat OR truck is still TBD (not fully assigned)
+  return getCurrentSessionRecords().filter(r =>
+    r.truck === 'TBD' || r.seat === 'TBD'
+  );
+}
+
+function updateHomeCard() {
+  const card = document.getElementById('active-session-card');
+  if (currentSession) {
+    const recs = getCurrentSessionRecords();
+    document.getElementById('home-session-id').textContent   = currentSession.id;
+    document.getElementById('home-session-count').textContent = recs.length + ' pack' + (recs.length !== 1 ? 's' : '') + ' logged';
+    card.style.display = 'block';
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// SCREENS
+// ══════════════════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════
+// SCAN FLOW
+// ══════════════════════════════════════════════════════════
+function resetScan() {
+  scanned     = { mask: null, cylinder: null, pack: null, battery: null };
+  scanMethods = { mask: null, cylinder: null, pack: null, battery: null };
+  const ffSel = document.getElementById('inspector-ff');
+  ffSel.value = '';
+  ffSel.className = 'form-select';
+  document.getElementById('scan-session-id').textContent = currentSession ? currentSession.id : '—';
+  updateScanUI();
+}
+
+function confirmReset() {
+  const hasData = Object.values(scanned).some(Boolean) ||
+                  document.getElementById('inspector-ff').value;
+  if (!hasData) return; // nothing to reset
+  if (confirm('Clear current scan and start fresh?')) {
+    resetScan();
+    focusInput();
+    showToast('Scan cleared', 'info');
+  }
+}
+
+function focusInput() {
+  const inp = document.getElementById('rfid-input');
+  inp.value = '';
+  inp.focus();
+}
+
+// ── RFID input — keydown handler ─────────────────────────
+document.getElementById('rfid-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    const val = this.value.trim();
+    this.value = '';
+    if (val) processUID(val);
+    e.preventDefault();
+  }
+});
+
+// ── Focus management ──────────────────────────────────────
+// Flag blocks RFID input from stealing focus during select interactions
+let selectActive = false;
+let selectTimer  = null;
+
+function setSelectActive(duration) {
+  selectActive = true;
+  if (selectTimer) clearTimeout(selectTimer);
+  selectTimer = setTimeout(() => { selectActive = false; }, duration);
+}
+
+// Any select on scan screen — block refocus while picker is open
+document.querySelectorAll('#screen-scan select').forEach(sel => {
+  // touchstart fires the moment user taps — block immediately
+  sel.addEventListener('touchstart', () => setSelectActive(5000), { passive: true });
+  // mousedown for desktop
+  sel.addEventListener('mousedown', () => setSelectActive(3000));
+  // change = selection made — unblock and refocus after brief delay
+  sel.addEventListener('change', () => {
+    selectActive = false;
+    if (selectTimer) clearTimeout(selectTimer);
+    // Only refocus if it's not the inspector FF# (that has its own handler)
+    if (sel.id !== 'inspector-ff') setTimeout(focusInput, 200);
+  });
+});
+
+// Tap on neutral scan screen area — refocus only if no select is active
+document.getElementById('screen-scan').addEventListener('click', function(e) {
+  if (selectActive) return;
+  const tag = e.target.tagName;
+  if (tag === 'SELECT' || tag === 'OPTION' || tag === 'INPUT' || tag === 'BUTTON' || tag === 'LABEL') return;
+  if (e.target.closest('select') || e.target.closest('button')) return;
+  focusInput();
+});
+
+// Blur — only refocus if no select interaction is pending
+document.getElementById('rfid-input').addEventListener('blur', function() {
+  if (!document.getElementById('screen-scan').classList.contains('active')) return;
+  if (selectActive) return;
+  setTimeout(() => {
+    if (selectActive) return;
+    const active = document.activeElement;
+    if (active && (active.tagName === 'SELECT' || active.tagName === 'BUTTON')) return;
+    focusInput();
+  }, 200);
+});
+
+function processUID(raw) {
+  const uid = raw.replace(/[\s\-]/g, '').toUpperCase();
+
+  // Check restricted first — flag and block
+  const restricted = RESTRICTED[uid] || RESTRICTED[uid.toLowerCase()];
+  if (restricted) {
+    showToast(restricted.msg, 'warn');
+    return;
+  }
+
+  const item = INVENTORY[uid] || INVENTORY[uid.toLowerCase()];
+  if (!item) { showToast('⚠ Unknown tag: ' + uid.slice(0,10) + '…', 'warn'); return; }
+  if (scanned[item.type]) { showToast(`⚠ ${item.type.toUpperCase()} already scanned`, 'warn'); return; }
+
+  // Check if this UID was already used in the active session
+  if (currentSession) {
+    const used = getCurrentSessionRecords().find(r =>
+      r.mask === uid || r.cylinder === uid || r.pack === uid || r.battery === uid
+    );
+    if (used) {
+      showToast(`⚠ ${item.label} already logged this session`, 'warn');
+      return;
+    }
+  }
+  scanned[item.type]     = uid;
+  scanMethods[item.type] = 'rfid';
+  updateScanUI();
+  showToast(`✓ ${item.label} recognized`, 'ok');
+  checkAutoAdvance();
+}
+
+function onReasonChange() {
+  const sel = document.getElementById('scan-reason');
+  sel.className = 'form-select' + (sel.value ? ' filled' : '');
+  setTimeout(focusInput, 200);
+}
+
+function onInspectorChange() {
+  const sel = document.getElementById('inspector-ff');
+  sel.className = 'form-select' + (sel.value ? ' filled' : '');
+  checkAutoAdvance();
+  // Return focus to RFID input so scanner goes to the right place
+  setTimeout(focusInput, 200);
+}
+
+function checkAutoAdvance() {
+  const allScanned = Object.values(scanned).every(Boolean);
+  const hasFF      = !!document.getElementById('inspector-ff').value;
+  if (allScanned && hasFF) {
+    setTimeout(openDetails, 700);
+  }
+}
+
+function updateScanUI() {
+  const done = Object.values(scanned).filter(Boolean).length;
+  const icons  = ['📡','📡','📡','📡','✅'];
+  const titles = ['READY TO SCAN','KEEP GOING','KEEP GOING','ONE MORE','ALL SCANNED'];
+  const subs   = [
+    'Select inspector FF# and scan all 4 components',
+    'Hold next component to the reader',
+    'Hold next component to the reader',
+    'One component remaining',
+    'Proceeding to details…'
+  ];
+  document.getElementById('status-icon').textContent  = icons[done];
+  document.getElementById('status-title').textContent = titles[done];
+  document.getElementById('status-sub').textContent   = subs[done];
+  [0,1,2,3].forEach(i => {
+    const seg = document.getElementById('pseg-' + i);
+    seg.className = 'prog-seg';
+    if (i < done)       seg.classList.add('scanned');
+    else if (i === done) seg.classList.add('active');
+  });
+  const comps = [
+    { key: 'mask',     id: 'mask' },
+    { key: 'cylinder', id: 'cylinder' },
+    { key: 'pack',     id: 'pack' },
+    { key: 'battery',  id: 'battery' },
+  ];
+  comps.forEach((c, idx) => {
+    const row = document.getElementById('row-' + c.id);
+    const dot = document.getElementById('dot-' + c.id);
+    const uid = document.getElementById('uid-' + c.id);
+    row.className = 'comp-row' + (scanned[c.key] ? ' scanned' : '');
+    dot.textContent = scanned[c.key] ? '✓' : (idx + 1).toString();
+    uid.textContent = scanned[c.key] ? getLabelForUID(scanned[c.key]) : 'Waiting…';
+    uid.className   = 'comp-uid' + (scanned[c.key] ? ' found' : '');
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// DETAILS
+// ══════════════════════════════════════════════════════════
+function openDetails() {
+  const inspector = document.getElementById('inspector-ff').value;
+  document.getElementById('detail-inspector').textContent = 'FF #' + inspector;
+
+  const comps = [
+    { key: 'mask', label: 'Mask' }, { key: 'cylinder', label: 'Cylinder' },
+    { key: 'pack', label: 'Pack' }, { key: 'battery',  label: 'Battery' },
+  ];
+  document.getElementById('review-card').innerHTML = comps.map(c => `
+    <div class="rv-row">
+      <div class="rv-key">${c.label}</div>
+      <div class="rv-val">${getLabelForUID(scanned[c.key])} &nbsp;·&nbsp; ${scanned[c.key]}</div>
+    </div>`).join('');
+
+  // Reset assignment fields
+  document.getElementById('truck-select').value   = 'TBD';
+  document.getElementById('seat-select').value    = 'TBD';
+  document.getElementById('putaway-ff').value     = 'TBD';
+  document.getElementById('seat-group').style.display = '';
+  showScreen('details');
+}
+
+// ── Truck → Seat mapping ──────────────────────────────────
+const TRUCK_SEATS = {
+  'E1-2': [1,2,3,4,5,6],
+  'R1':   [12,13,14,15,16],
+  'S1':   [17,18,19,20],
+  'E1':   [21,22,23,24,25,26],
+};
+
+function onTruckChange(truckId, seatId, seatGroupId) {
+  const truck     = document.getElementById(truckId).value;
+  const seatSel   = document.getElementById(seatId);
+  const seatGroup = document.getElementById(seatGroupId);
+
+  if (truck === 'Spare') {
+    seatGroup.style.display = 'none';
+    seatSel.value = 'N/A';
+    return;
+  }
+
+  seatGroup.style.display = '';
+  // Rebuild seat options based on truck
+  const currentVal = seatSel.value;
+  seatSel.innerHTML = '<option value="TBD">TBD</option>';
+  const seats = TRUCK_SEATS[truck] || [];
+  seats.forEach(s => {
+    const o = document.createElement('option');
+    o.value = 'Seat ' + s;
+    o.textContent = 'Seat ' + s;
+    seatSel.appendChild(o);
+  });
+  // Restore previous value if still valid
+  if ([...seatSel.options].some(o => o.value === currentVal)) {
+    seatSel.value = currentVal;
+  }
+}
+
+function submitRecord() {
+  const inspector = document.getElementById('inspector-ff').value;
+  const putaway   = document.getElementById('putaway-ff').value;
+  const truck     = document.getElementById('truck-select').value;
+  const seat      = document.getElementById('seat-select').value;
+
+  const reason    = document.getElementById('scan-reason').value || 'Not specified';
+  // Check for seat conflict before saving
+  const seatConflict = checkSeatConflict(truck, seat);
+  if (seatConflict) {
+    alert(`⚠ ${truck} ${seat} already has ${seatConflict.packLabel} assigned this session.\nPlease choose a different seat or leave as TBD.`);
+    return;
+  }
+
+  const methods   = Object.values(scanMethods).filter(Boolean);
+  const method    = methods.length === 0               ? 'rfid'
+                  : methods.every(m => m === 'rfid')   ? 'rfid'
+                  : methods.every(m => m === 'manual')  ? 'manual'
+                  : 'hybrid';
+  const now       = new Date();
+  const ref       = 'SCBA-' + now.getTime();
+
+  const rec = {
+    ref,
+    sessionId:      currentSession ? currentSession.id : 'NO-SESSION',
+    timestamp:      now.toISOString(),
+    display:        now.toLocaleString('en-CA', { dateStyle: 'medium', timeStyle: 'short' }),
+    inspectorFF:    inspector,
+    reason,
+    putawayFF:      putaway,
+    truck,
+    seat,
+    assigned:       truck !== 'TBD' && (truck === 'Spare' || seat !== 'TBD'),
+    mask:           scanned.mask,    maskLabel:     getLabelForUID(scanned.mask),
+    cylinder:       scanned.cylinder, cylinderLabel: getLabelForUID(scanned.cylinder),
+    pack:           scanned.pack,    packLabel:     getLabelForUID(scanned.pack),
+    battery:        scanned.battery, batteryLabel:  getLabelForUID(scanned.battery),
+    method,
+  };
+
+  appendRecord(rec);
+  updateHomeCard();
+
+  // Reset and return to scan
+  scanned     = { mask: null, cylinder: null, pack: null, battery: null };
+  scanMethods = { mask: null, cylinder: null, pack: null, battery: null };
+  document.getElementById('inspector-ff').value = '';
+  document.getElementById('inspector-ff').className = 'form-select';
+  updateScanUI();
+
+  showToast(`✓ ${rec.packLabel} logged`, 'ok');
+  showScreen('scan');
+  focusInput();
+}
+
+// ══════════════════════════════════════════════════════════
+// ASSIGN SEAT
+// ══════════════════════════════════════════════════════════
+function openAssignSeat() {
+  renderAssignSeatList();
+  showScreen('assign-seat');
+}
+
+function renderAssignSeatList() {
+  const unassigned = getUnassignedRecords();
+  const list       = document.getElementById('assign-seat-list');
+  if (!unassigned.length) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📍</div>
+        <div class="empty-text">No unassigned packs in this session.<br>All packs have seat assignments.</div>
+      </div>`;
+    return;
+  }
+  list.innerHTML = unassigned.map(r => `
+    <div class="pack-card" onclick="openAssignDetail('${r.ref}')">
+      <div class="pack-icon">🎒</div>
+      <div class="pack-info">
+        <div class="pack-name">${r.packLabel}</div>
+        <div class="pack-meta">Inspector: FF #${r.inspectorFF} · ${r.display}</div>
+      </div>
+      <div class="pack-arrow">›</div>
+    </div>`).join('');
+}
+
+function openAssignDetail(ref) {
+  currentAssignRef = ref;
+  const log = loadLog();
+  const rec = log.find(r => r.ref === ref);
+  if (!rec) return;
+
+  document.getElementById('assign-detail-title').textContent = rec.packLabel;
+  document.getElementById('assign-components').innerHTML = [
+    { label: 'Mask',     val: rec.maskLabel,     uid: rec.mask },
+    { label: 'Cylinder', val: rec.cylinderLabel, uid: rec.cylinder },
+    { label: 'Pack',     val: rec.packLabel,     uid: rec.pack },
+    { label: 'Battery',  val: rec.batteryLabel,  uid: rec.battery },
+  ].map(c => `
+    <div class="rv-row">
+      <div class="rv-key">${c.label}</div>
+      <div class="rv-val">${c.val} · ${c.uid}</div>
+    </div>`).join('');
+
+  document.getElementById('assign-truck').value       = rec.truck || 'TBD';
+  document.getElementById('assign-seat-select').value = rec.seat  || 'TBD';
+  document.getElementById('assign-putaway-ff').value  = rec.putawayFF || 'TBD';
+  document.getElementById('assign-seat-group').style.display = rec.truck === 'Spare' ? 'none' : '';
+  showScreen('assign-detail');
+}
+
+
+
+function saveAssignment() {
+  if (!currentAssignRef) return;
+  const truck   = document.getElementById('assign-truck').value;
+  const seat    = document.getElementById('assign-seat-select').value;
+  const putaway = document.getElementById('assign-putaway-ff').value;
+
+  // Check for seat conflict (exclude current record from check)
+  const seatConflict = checkSeatConflict(truck, seat, currentAssignRef);
+  if (seatConflict) {
+    alert(`⚠ ${truck} ${seat} already has ${seatConflict.packLabel} assigned this session.\nPlease choose a different seat.`);
+    return;
+  }
+
+  updateRecord(currentAssignRef, {
+    truck, seat, putawayFF: putaway, assigned: truck !== 'TBD' && (truck === 'Spare' || seat !== 'TBD')
+  });
+
+  showToast('✓ Assignment saved', 'ok');
+  updateHomeCard();
+  openAssignSeat();
+}
+
+// ══════════════════════════════════════════════════════════
+// FINISH SESSION
+// ══════════════════════════════════════════════════════════
+function openFinishSession() {
+  if (!currentSession) return;
+  const recs   = getCurrentSessionRecords();
+  const tbd    = recs.filter(r => r.truck === 'TBD');
+  const done   = recs.length - tbd.length;
+
+  document.getElementById('finish-session-id').textContent = currentSession.id;
+  document.getElementById('finish-summary').innerHTML = `
+    <div class="summary-cell">
+      <div class="summary-num">${recs.length}</div>
+      <div class="summary-label">Total Packs</div>
+    </div>
+    <div class="summary-cell">
+      <div class="summary-num ok">${done}</div>
+      <div class="summary-label">Assigned</div>
+    </div>
+    <div class="summary-cell">
+      <div class="summary-num ${tbd.length > 0 ? 'warn' : 'ok'}">${tbd.length}</div>
+      <div class="summary-label">TBD</div>
+    </div>`;
+
+  const tbdList = document.getElementById('finish-tbd-list');
+  if (!tbd.length) {
+    tbdList.innerHTML = `
+      <div class="all-clear">
+        <div class="all-clear-icon">✅</div>
+        <div class="all-clear-text">All packs assigned</div>
+        <div class="all-clear-sub">Session is ready to close</div>
+      </div>`;
+  } else {
+    tbdList.innerHTML = `
+      <div class="dl" style="margin-top:0">Unassigned Packs — Resolve before closing</div>` +
+      tbd.map(r => `
+      <div class="tbd-item">
+        <div class="tbd-item-info">
+          <div class="tbd-item-name">${r.packLabel}</div>
+          <div class="tbd-item-meta">Inspector: FF #${r.inspectorFF} · ${r.display}</div>
+        </div>
+        <button class="tbd-resolve-btn" onclick="resolveFromFinish('${r.ref}')">Assign →</button>
+      </div>`).join('') + `
+      <div style="margin-top:12px;padding:10px 14px;background:var(--amber-dim);border:1px solid rgba(230,119,0,0.3);border-radius:var(--radius-sm);font-size:12px;color:#FD7E14;line-height:1.6;">
+        ⚠ Resolve all TBD assignments before closing, or mark as Spare.
+      </div>`;
+  }
+
+  const closeBtn = document.getElementById('close-session-btn');
+  closeBtn.disabled = tbd.length > 0;
+  closeBtn.style.opacity = tbd.length > 0 ? '0.4' : '1';
+
+  showScreen('finish-session');
+}
+
+function resolveFromFinish(ref) {
+  openAssignDetail(ref);
+}
+
+function closeSession() {
+  const recs = getCurrentSessionRecords();
+  const tbd  = recs.filter(r => r.truck === 'TBD');
+  if (tbd.length > 0) { showToast('⚠ Resolve all TBD packs first', 'warn'); return; }
+
+  showToast(`✓ Session ${currentSession.id} closed — ${recs.length} packs logged`, 'info');
+  clearSession();
+  currentSession = null;
+  updateHomeCard();
+  showScreen('home');
+}
+
+// ══════════════════════════════════════════════════════════
+// NO SCANNER MODE
+// ══════════════════════════════════════════════════════════
+function openNoScanner() {
+  // Pre-fill Inspector FF# and Reason from scan screen
+  const scanFF     = document.getElementById('inspector-ff').value;
+  const scanReason = document.getElementById('scan-reason').value;
+  const nsFF       = document.getElementById('ns-inspector-ff');
+  const nsReason   = document.getElementById('ns-reason');
+  nsFF.value     = scanFF || '';
+  nsReason.value = scanReason || '';
+  nsFF.style.borderColor     = scanFF     ? 'rgba(64,192,87,0.5)' : '';
+  nsFF.style.color           = scanFF     ? 'var(--success-lt)'   : '';
+  nsReason.style.borderColor = scanReason ? 'rgba(64,192,87,0.5)' : '';
+  nsReason.style.color       = scanReason ? 'var(--success-lt)'   : '';
+
+  // Pre-fill already-scanned components
+  const fields = [
+    { key: 'mask',     selectId: 'ns-mask' },
+    { key: 'cylinder', selectId: 'ns-cylinder' },
+    { key: 'pack',     selectId: 'ns-pack' },
+    { key: 'battery',  selectId: 'ns-battery' },
+  ];
+  fields.forEach(({ key, selectId }) => {
+    const sel = document.getElementById(selectId);
+    const uid = scanned[key];
+    if (uid) {
+      for (const opt of sel.options) {
+        if (opt.value.includes(uid)) {
+          sel.value = opt.value;
+          sel.style.borderColor = 'rgba(64,192,87,0.5)';
+          sel.style.color = 'var(--success-lt)';
+          break;
+        }
+      }
+    } else {
+      sel.value = '';
+      sel.style.borderColor = '';
+      sel.style.color = '';
+    }
+  });
+  showScreen('no-scanner');
+}
+
+function submitManualSelection() {
+  const nsFF    = document.getElementById('ns-inspector-ff').value;
+  const maskVal = document.getElementById('ns-mask').value;
+  const cylVal  = document.getElementById('ns-cylinder').value;
+  const packVal = document.getElementById('ns-pack').value;
+  const batVal  = document.getElementById('ns-battery').value;
+
+  if (!nsFF)    { alert('Please select an Inspector FF #.'); return; }
+  if (!maskVal || !cylVal || !packVal || !batVal) { alert('Please select all four components.'); return; }
+
+  // Carry FF# and Reason back to scan screen
+  const scanFFSel  = document.getElementById('inspector-ff');
+  const scanRsnSel = document.getElementById('scan-reason');
+  scanFFSel.value  = nsFF;
+  scanFFSel.className  = 'form-select filled';
+  const nsRsnVal   = document.getElementById('ns-reason').value;
+  if (nsRsnVal) { scanRsnSel.value = nsRsnVal; scanRsnSel.className = 'form-select filled'; }
+
+  const parse = v => v.split('|')[1] !== 'MANUAL' ? v.split('|')[1] : v.split('|')[0];
+  const parsed = {
+    mask:     parse(maskVal),
+    cylinder: parse(cylVal),
+    pack:     parse(packVal),
+    battery:  parse(batVal),
+  };
+
+  // Duplicate session check — same as RFID scanner
+  if (currentSession) {
+    const sessionRecs = getCurrentSessionRecords();
+    for (const [type, uid] of Object.entries(parsed)) {
+      // Only check real UIDs (not manual label codes like MASK-1)
+      if (!uid || uid.includes('-')) continue;
+      const already = sessionRecs.find(r =>
+        r.mask === uid || r.cylinder === uid || r.pack === uid || r.battery === uid
+      );
+      if (already) {
+        const label = getLabelForUID(uid);
+        alert(`⚠ ${label} has already been logged in this session.\nPlease select a different item.`);
+        return;
+      }
+    }
+  }
+
+  // Apply parsed values and track as manual
+  // Only update components not already scanned via RFID
+  const types = ['mask','cylinder','pack','battery'];
+  types.forEach(t => {
+    if (!scanned[t]) {
+      scanned[t]     = parsed[t];
+      scanMethods[t] = 'manual';
+    }
+  });
+
+  updateScanUI();
+
+  const allDone = Object.values(scanned).every(Boolean);
+  const hasFF   = !!document.getElementById('inspector-ff').value;
+  if (allDone && hasFF) {
+    showScreen('scan');
+    openDetails();
+  } else {
+    showScreen('scan');
+    focusInput();
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// LOG
+// ══════════════════════════════════════════════════════════
+function openLog() {
+  logReturnScreen = document.getElementById('screen-scan').classList.contains('active') ? 'scan' : 'home';
+  renderLog();
+  showScreen('log');
+}
+
+function goBackFromLog() {
+  if (logReturnScreen === 'scan') { showScreen('scan'); focusInput(); }
+  else showScreen('home');
+}
+
+function renderLog() {
+  const log  = loadLog();
+  const list = document.getElementById('log-list');
+  document.getElementById('log-count').textContent = log.length + ' record' + (log.length !== 1 ? 's' : '');
+
+  if (!log.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No records yet.</div></div>`;
+    return;
+  }
+
+  // Group by session
+  const sessions = {};
+  log.forEach(r => {
+    const sid = r.sessionId || 'Unknown';
+    if (!sessions[sid]) sessions[sid] = [];
+    sessions[sid].push(r);
+  });
+
+  let html = '';
+  for (const [sid, recs] of Object.entries(sessions)) {
+    html += `<div class="session-group-hdr">${sid} &nbsp;·&nbsp; ${recs.length} pack${recs.length !== 1 ? 's' : ''}</div>`;
+    html += recs.map(r => `
+      <div class="log-card">
+        <div class="log-card-head">
+          <div class="log-pack-name">${r.packLabel}</div>
+          <div class="log-method ${r.method}">${r.method === 'rfid' ? 'RFID' : r.method === 'manual' ? 'Manual' : r.method === 'hybrid' ? 'Hybrid' : r.method}</div>
+        </div>
+        <div class="log-assign-status ${r.assigned ? 'assigned' : 'tbd'}">${r.assigned ? '✓ Assigned' : '⚠ TBD'}</div>
+        <div class="log-info-grid">
+          <div class="log-info-cell"><div class="log-info-label">Inspector</div><div class="log-info-val">FF #${r.inspectorFF}</div></div>
+          <div class="log-info-cell"><div class="log-info-label">Reason</div><div class="log-info-val">${r.reason || '—'}</div></div>
+          <div class="log-info-cell"><div class="log-info-label">Put-Away</div><div class="log-info-val">${r.putawayFF === 'TBD' ? 'TBD' : 'FF #' + r.putawayFF}</div></div>
+          <div class="log-info-cell"><div class="log-info-label">Truck</div><div class="log-info-val">${r.truck}</div></div>
+          <div class="log-info-cell"><div class="log-info-label">Seat</div><div class="log-info-val">${r.seat}</div></div>
+        </div>
+        <div class="log-uids">
+          ${[['Mask',r.maskLabel,r.mask],['Cylinder',r.cylinderLabel,r.cylinder],['Pack',r.packLabel,r.pack],['Battery',r.batteryLabel,r.battery]].map(([lbl,name,uid]) => `
+          <div class="log-uid-row">
+            <div class="log-uid-label">${lbl}</div>
+            <div class="log-uid-val"><span class="log-uid-name">${name}</span>${uid}</div>
+          </div>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+  html += `<button class="clear-log-btn" onclick="clearLog()">🗑 &nbsp;Clear All Records</button>`;
+  list.innerHTML = html;
+}
+
+function clearLog() {
+  if (!confirm('Clear all records? This cannot be undone.')) return;
+  saveLog([]);
+  renderLog();
+}
+
+// ══════════════════════════════════════════════════════════
+// CSV EXPORT
+// ══════════════════════════════════════════════════════════
+function exportCSV() {
+  const log = loadLog();
+  if (!log.length) { alert('No records to export.'); return; }
+  const hdrs = ['Session','Timestamp','Inspector FF#','Reason','Put-Away FF#','Truck','Seat','Assigned','Pack','Pack UID','Mask','Mask UID','Cylinder','Cylinder UID','Battery','Battery UID','Method','Ref'];
+  const rows = log.map(r => [
+    r.sessionId, r.display, r.inspectorFF, r.reason || '', r.putawayFF,
+    r.truck, r.seat, r.assigned ? 'Yes' : 'No',
+    r.packLabel, r.pack, r.maskLabel, r.mask,
+    r.cylinderLabel, r.cylinder, r.batteryLabel, r.battery,
+    r.method, r.ref
+  ]);
+  const csv  = [hdrs, ...rows].map(row => row.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'SCBA_Log_' + new Date().toISOString().split('T')[0] + '.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+// ── SEAT CONFLICT CHECK ──────────────────────────────────
+function checkSeatConflict(truck, seat, excludeRef = null) {
+  if (!truck || truck === 'TBD' || truck === 'Spare') return null;
+  if (!seat  || seat  === 'TBD' || seat  === 'N/A')  return null;
+  const recs = getCurrentSessionRecords();
+  return recs.find(r =>
+    r.ref !== excludeRef &&
+    r.truck === truck &&
+    r.seat  === seat  &&
+    r.assigned
+  ) || null;
+}
+
+function getLabelForUID(uid) {
+  if (!uid) return '—';
+  const u = uid.toUpperCase();
+  if (INVENTORY[u]) return INVENTORY[u].label;
+  if (INVENTORY[uid.toLowerCase()]) return INVENTORY[uid.toLowerCase()].label;
+  return uid.replace(/-/g, ' ');
+}
+
+let toastTimer = null;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+(function init() {
+  // Populate FF# dropdowns
+  const ffDropdowns = ['inspector-ff','putaway-ff','assign-putaway-ff','ns-inspector-ff'];
+  ffDropdowns.forEach(id => {
+    const sel = document.getElementById(id);
+    for (let i = 1; i <= 34; i++) {
+      const o = document.createElement('option');
+      o.value = i; o.textContent = 'FF #' + i;
+      sel.appendChild(o);
+    }
+  });
+
+  // Restore active session if exists
+  const saved = loadSession();
+  if (saved) {
+    currentSession = saved;
+    updateHomeCard();
+  }
+
+  updateScanUI();
+})();
+</script>
+</body>
+</html>
